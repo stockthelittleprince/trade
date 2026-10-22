@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>交易筆記與點位追蹤器</title>
+  <style>
+    :root {
+      --bg-color: #0b0e14;
+      --card-bg: #151922;
+      --card-border: #232936;
+      --text-main: #f0f4f8;
+      --text-muted: #8b96a5;
+      --accent-blue: #3b82f6;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      --accent-purple: #8b5cf6;
+      --hover-bg: #1c2230;
+      --input-bg: #0f1218;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding: 24px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    button {
+      background: var(--card-bg);
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    button:hover {
+      background: var(--hover-bg);
+      border-color: #3b82f688;
+    }
+
+    button.primary {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+      color: #fff;
+    }
+
+    button.primary:hover {
+      background: #2563eb;
+    }
+
+    button.danger {
+      background: #321920;
+      color: #f87171;
+      border-color: #5c222c;
+    }
+
+    button.danger:hover {
+      background: var(--accent-red);
+      color: #fff;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+
+    @media (max-width: 868px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .section-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent-blue);
+    }
+
+    .form-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .form-row .form-group {
+      flex: 1;
+    }
+
+    /* 策略卡片列表 */
+    .strategy-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 18px;
+    }
+
+    .strat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 18px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .strat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+
+    .strat-name {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .btn-icon {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 4px 6px;
+      font-size: 1rem;
+      border-radius: 4px;
+    }
+
+    .btn-icon:hover {
+      color: var(--accent-red);
+      background: #2a1b20;
+    }
+
+    .strat-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      background: var(--input-bg);
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 14px;
+      border: 1px solid #1a202c;
+    }
+
+    .stat-box {
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .stat-val {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .val-profit { color: var(--accent-green); }
+    .val-loss { color: var(--accent-red); }
+
+    .strat-input-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .strat-input-group input {
+      flex: 1;
+      text-align: center;
+    }
+
+    /* 部位列表表格 */
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    th {
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.8rem;
+      background: #11151c;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-long { background: #064e3b; color: #34d399; }
+    .badge-short { background: #7f1d1d; color: #fca5a5; }
+
+    .empty-tip {
+      text-align: center;
+      padding: 30px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>📈 交易點位與策略筆記</h1>
+      <div class="header-actions">
+        <button onclick="exportData()">📥 備份資料 (JSON)</button>
+        <button onclick="importData()">📤 匯入備份</button>
+      </div>
+    </header>
+
+    <!-- 上半部：新增點位 & 特殊策略專區 -->
+    <div class="grid-2">
+      <!-- 新增進場點位 -->
+      <div class="section-card">
+        <div class="section-title">📌 新增進場部位點位</div>
+        <form id="positionForm" onsubmit="addPosition(event)">
+          <div class="form-row">
+            <div class="form-group">
+              <label>商品名稱</label>
+              <input type="text" id="symbol" placeholder="例如：台指期 / 小台 / 股票" required>
+            </div>
+            <div class="form-group">
+              <label>方向</label>
+              <select id="side">
+                <option value="做多">做多 (Long)</option>
+                <option value="做空">做空 (Short)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>進場點位 / 價格</label>
+              <input type="number" step="any" id="entryPrice" placeholder="例如：40000" required>
+            </div>
+            <div class="form-group">
+              <label>數量 (口/股)</label>
+              <input type="number" id="qty" value="1" min="1" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>進場原因與備註</label>
+            <input type="text" id="posNote" placeholder="例如：黑後紅策略進場 / 突破前高">
+          </div>
+          <button type="submit" class="primary" style="width: 100%;">新增部位記錄</button>
+        </form>
+      </div>
+
+      <!-- 新增特殊策略卡片 -->
+      <div class="section-card">
+        <div class="section-title">⚡ 新增特殊策略卡片</div>
+        <form id="strategyForm" onsubmit="addStrategy(event)">
+          <div class="form-group">
+            <label>策略名稱</label>
+            <input type="text" id="stratName" placeholder="例如：特殊策略 黑後紅 / 幾何突破" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>初始累計損益 (選填)</label>
+              <input type="number" id="stratInitPnl" value="0" placeholder="0">
+            </div>
+            <div class="form-group">
+              <label>初始交易次數 (選填)</label>
+              <input type="number" id="stratInitCount" value="0" placeholder="0">
+            </div>
+          </div>
+          <button type="submit" class="primary" style="width: 100%; margin-top: 14px;">建立策略卡片</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 中間：特殊策略累計區域 -->
+    <div style="margin-bottom: 28px;">
+      <h2 style="font-size: 1.2rem; margin-bottom: 16px; color: var(--text-main);">🎯 特殊策略與卡片統計</h2>
+      <div class="strategy-grid" id="strategyGrid">
+        <!-- 策略卡片動態載入區 -->
+      </div>
+    </div>
+
+    <!-- 下半部：目前與歷史進場部位列表 -->
+    <div class="section-card">
+      <div class="section-title">
+        <span>📋 已記錄之進場部位與點位</span>
+        <button onclick="clearPositions()" class="danger" style="padding: 4px 10px; font-size: 0.75rem;">清空所有部位</button>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
