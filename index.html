@@ -1,625 +1,703 @@
 <!DOCTYPE html>
-<html lang="zh-TW" class="dark">
+<html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>交易筆記與點位追蹤系統</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        dark: {
-                            bg: '#0A0E17',
-                            card: '#141C2B',
-                            border: '#212D42',
-                            hover: '#1B263B',
-                            input: '#0E1420'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #0A0E17; }
-        ::-webkit-scrollbar-thumb { background: #212D42; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #324361; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>交易筆記與點位追蹤器</title>
+  <style>
+    :root {
+      --bg-color: #0b0e14;
+      --card-bg: #151922;
+      --card-border: #232936;
+      --text-main: #f0f4f8;
+      --text-muted: #8b96a5;
+      --accent-blue: #3b82f6;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      --hover-bg: #1c2230;
+      --input-bg: #0f1218;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding: 24px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      background: var(--card-bg);
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    button:hover {
+      background: var(--hover-bg);
+      border-color: #3b82f688;
+    }
+
+    button.primary {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+      color: #fff;
+    }
+
+    button.primary:hover {
+      background: #2563eb;
+    }
+
+    button.danger {
+      background: #321920;
+      color: #f87171;
+      border-color: #5c222c;
+    }
+
+    button.danger:hover {
+      background: var(--accent-red);
+      color: #fff;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 868px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .section-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 18px;
+    }
+
+    .section-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+    }
+
+    input, select {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      padding: 9px 12px;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent-blue);
+    }
+
+    .form-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .form-row .form-group {
+      flex: 1;
+    }
+
+    /* 折疊控制與策略網格 */
+    .collapsible-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .strategy-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .strategy-grid.collapsed {
+      display: none;
+    }
+
+    .strat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .strat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .strat-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .btn-icon {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 4px 6px;
+      font-size: 0.95rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .btn-icon:hover {
+      color: var(--accent-red);
+      background: #2a1b20;
+    }
+
+    .strat-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      background: var(--input-bg);
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      border: 1px solid #1a202c;
+    }
+
+    .stat-box {
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .stat-val {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .val-profit { color: var(--accent-green); }
+    .val-loss { color: var(--accent-red); }
+
+    .strat-inputs {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .strat-input-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .strat-input-row input {
+      font-size: 0.85rem;
+      padding: 6px 10px;
+    }
+
+    /* 部位列表表格 */
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.88rem;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    th {
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.78rem;
+      background: #11151c;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-long { background: #064e3b; color: #34d399; }
+    .badge-short { background: #7f1d1d; color: #fca5a5; }
+
+    .empty-tip {
+      text-align: center;
+      padding: 24px;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+    }
+
+    .toggle-all-btn {
+      display: block;
+      width: 100%;
+      text-align: center;
+      margin-top: 12px;
+      background: var(--input-bg);
+      color: var(--text-muted);
+      border: 1px dashed var(--card-border);
+      padding: 8px;
+      font-size: 0.8rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .toggle-all-btn:hover {
+      color: var(--text-main);
+      border-color: var(--accent-blue);
+    }
+  </style>
 </head>
-<body class="bg-dark-bg text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white pb-12">
+<body>
 
-    <!-- Top Navigation Header -->
-    <header class="border-b border-dark-border bg-dark-card/90 backdrop-blur sticky top-0 z-30">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="p-2 bg-blue-500/10 text-blue-400 rounded-xl border border-blue-500/20">
-                    <i class="fa-solid fa-chart-line text-xl"></i>
-                </div>
-                <div>
-                    <h1 class="font-extrabold text-lg tracking-wide text-white flex items-center gap-2">
-                        TRADING JOURNAL
-                        <span class="text-xs font-normal text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">點位 & 策略追蹤</span>
-                    </h1>
-                </div>
-            </div>
-
-            <!-- Backup and Restore Actions -->
-            <div class="flex items-center space-x-2">
-                <button onclick="exportData()" title="下載 JSON 備份檔" class="px-3 py-1.5 rounded-lg bg-dark-card hover:bg-dark-hover text-slate-300 border border-dark-border transition text-xs flex items-center space-x-1.5">
-                    <i class="fa-solid fa-download text-blue-400"></i>
-                    <span>匯出備份</span>
-                </button>
-                <button onclick="openImportModal()" title="匯入 JSON 備份檔" class="px-3 py-1.5 rounded-lg bg-dark-card hover:bg-dark-hover text-slate-300 border border-dark-border transition text-xs flex items-center space-x-1.5">
-                    <i class="fa-solid fa-upload text-emerald-400"></i>
-                    <span>匯入資料</span>
-                </button>
-            </div>
-        </div>
+  <div class="container">
+    <header>
+      <h1>📈 交易點位與策略筆記</h1>
+      <div class="header-actions">
+        <button onclick="exportData()">📥 備份資料 (JSON)</button>
+        <button onclick="importData()">📤 匯入備份</button>
+      </div>
     </header>
 
-    <!-- Main Container -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8 flex-grow w-full">
-
-        <!-- Forms Grid Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-            <!-- 1. Position Entry Form -->
-            <section class="bg-dark-card border border-dark-border rounded-xl p-5 space-y-4 shadow-lg">
-                <div class="flex items-center space-x-2 border-b border-dark-border pb-3">
-                    <i class="fa-solid fa-crosshairs text-blue-400"></i>
-                    <h2 class="font-bold text-slate-100 text-sm">新增進場部位點位</h2>
-                </div>
-
-                <form onsubmit="handleAddPosition(event)" class="space-y-3 text-xs">
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-slate-400 mb-1">商品名稱</label>
-                            <input type="text" id="posSymbol" required placeholder="例如：台指期、小台" class="w-full bg-dark-input border border-dark-border rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-slate-400 mb-1">方向</label>
-                            <select id="posSide" class="w-full bg-dark-input border border-dark-border rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-blue-500">
-                                <option value="做多">做多 (Long)</option>
-                                <option value="做空">做空 (Short)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-slate-400 mb-1">進場點位 / 價格</label>
-                            <input type="number" step="any" id="posPrice" required placeholder="例如：40000" class="w-full bg-dark-input border border-dark-border rounded-lg p-2.5 font-mono text-slate-100 focus:outline-none focus:border-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-slate-400 mb-1">數量 (口/股)</label>
-                            <input type="number" id="posQty" min="1" value="1" required class="w-full bg-dark-input border border-dark-border rounded-lg p-2.5 font-mono text-slate-100 focus:outline-none focus:border-blue-500">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-slate-400 mb-1">進場原因與備註 (選填)</label>
-                        <input type="text" id="posNote" placeholder="例如：黑後紅策略進場第1口" class="w-full bg-dark-input border border-dark-border rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-blue-500">
-                    </div>
-
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-lg transition shadow-md shadow-blue-600/20 text-xs flex items-center justify-center space-x-1">
-                        <i class="fa-solid fa-plus"></i>
-                        <span>新增部位紀錄</span>
-                    </button>
-                </form>
-            </section>
-
-            <!-- 2. Create Strategy Form -->
-            <section class="bg-dark-card border border-dark-border rounded-xl p-5 space-y-4 shadow-lg flex flex-col justify-between">
-                <div>
-                    <div class="flex items-center space-x-2 border-b border-dark-border pb-3 mb-3">
-                        <i class="fa-solid fa-chess-knight text-amber-400"></i>
-                        <h2 class="font-bold text-slate-100 text-sm">新增特殊策略卡片</h2>
-                    </div>
-
-                    <form id="addStratForm" onsubmit="handleAddStrategy(event)" class="space-y-3 text-xs">
-                        <div>
-                            <label class="block text-slate-400 mb-1">策略名稱</label>
-                            <input type="text" id="stratName" required placeholder="例如：特殊策略 黑後紅" class="w-full bg-dark-input border border-dark-border rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-amber-500">
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-slate-400 mb-1">初始累計損益 (選填)</label>
-                                <input type="number" id="stratInitPnl" value="0" class="w-full bg-dark-input border border-dark-border rounded-lg p-2.5 font-mono text-slate-100 focus:outline-none focus:border-amber-500">
-                            </div>
-                            <div>
-                                <label class="block text-slate-400 mb-1">初始累計次數 (選填)</label>
-                                <input type="number" id="stratInitCount" value="0" class="w-full bg-dark-input border border-dark-border rounded-lg p-2.5 font-mono text-slate-100 focus:outline-none focus:border-amber-500">
-                            </div>
-                        </div>
-
-                        <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2.5 rounded-lg transition shadow-md shadow-amber-500/10 text-xs flex items-center justify-center space-x-1 mt-2">
-                            <i class="fa-solid fa-layer-group"></i>
-                            <span>建立策略卡片</span>
-                        </button>
-                    </form>
-                </div>
-            </section>
-
-        </div>
-
-        <!-- Strategy Cards Section -->
-        <section class="space-y-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <div class="w-2 h-5 bg-amber-400 rounded-full"></div>
-                    <h2 class="text-base font-bold text-slate-100">特殊策略與卡片統計</h2>
-                </div>
+    <div class="grid-2">
+      <!-- 新增進場部位點位 -->
+      <div class="section-card">
+        <div class="section-title">📌 新增進場部位點位</div>
+        <form id="positionForm" onsubmit="addPosition(event)">
+          <div class="form-row">
+            <div class="form-group">
+              <label>商品名稱</label>
+              <input type="text" id="symbol" placeholder="例如：小台 / 台指期" required>
             </div>
-
-            <!-- Strategy Grid -->
-            <div id="strategyGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <!-- Dynamically rendered strategy cards -->
+            <div class="form-group">
+              <label>方向</label>
+              <select id="side">
+                <option value="做多">做多 (Long)</option>
+                <option value="做空">做空 (Short)</option>
+              </select>
             </div>
-        </section>
-
-        <!-- Position Table Section -->
-        <section class="bg-dark-card border border-dark-border rounded-xl p-5 space-y-4 shadow-lg">
-            <div class="flex justify-between items-center border-b border-dark-border pb-3">
-                <div class="flex items-center space-x-2">
-                    <div class="w-2 h-5 bg-blue-500 rounded-full"></div>
-                    <h2 class="text-base font-bold text-slate-100">已記錄之進場部位點位</h2>
-                    <span id="posCountBadge" class="bg-blue-500/20 text-blue-400 text-xs px-2 py-0.5 rounded-full font-mono border border-blue-500/30">0</span>
-                </div>
-                <button onclick="clearAllPositions()" class="text-xs bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 px-3 py-1.5 rounded-lg transition flex items-center space-x-1">
-                    <i class="fa-solid fa-trash-can"></i>
-                    <span>一鍵清空部位</span>
-                </button>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>進場點位 / 價格</label>
+              <input type="number" step="any" id="entryPrice" placeholder="例如：40000" required>
             </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs text-slate-300">
-                    <thead class="bg-dark-input text-slate-400 font-medium uppercase border-b border-dark-border">
-                        <tr>
-                            <th class="px-4 py-3">時間</th>
-                            <th class="px-4 py-3">商品名稱</th>
-                            <th class="px-4 py-3">方向</th>
-                            <th class="px-4 py-3">進場點位</th>
-                            <th class="px-4 py-3">數量</th>
-                            <th class="px-4 py-3">備註</th>
-                            <th class="px-4 py-3 text-right">操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="positionTableBody" class="divide-y divide-dark-border font-mono">
-                        <!-- Dynamically rendered position rows -->
-                    </tbody>
-                </table>
+            <div class="form-group">
+              <label>數量 (口/股)</label>
+              <input type="number" id="qty" value="1" min="1" required>
             </div>
-        </section>
+          </div>
+          <div class="form-group">
+            <label>進場原因與備註</label>
+            <input type="text" id="posNote" placeholder="例如：黑後紅策略進場第1口">
+          </div>
+          <button type="submit" class="primary" style="width: 100%;">新增部位記錄</button>
+        </form>
+      </div>
 
-    </main>
-
-    <!-- Edit Strategy Modal -->
-    <div id="editModalOverlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-dark-card border border-dark-border rounded-xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
-            <div class="flex justify-between items-center border-b border-dark-border pb-3">
-                <h3 class="font-bold text-slate-100 flex items-center space-x-2 text-sm">
-                    <i class="fa-solid fa-pen-to-square text-amber-400"></i>
-                    <span>直接修改策略卡片數據</span>
-                </h3>
-                <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark text-base"></i></button>
+      <!-- 新增特殊策略卡片 -->
+      <div class="section-card">
+        <div class="section-title">⚡ 新增特殊策略卡片</div>
+        <form id="strategyForm" onsubmit="addStrategy(event)">
+          <div class="form-group">
+            <label>策略名稱</label>
+            <input type="text" id="stratName" placeholder="例如：特殊策略 黑後紅" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>初始累計損益</label>
+              <input type="number" id="stratInitPnl" value="0" placeholder="0">
             </div>
-
-            <div class="space-y-3 text-xs">
-                <input type="hidden" id="editStratId">
-                <div>
-                    <label class="block text-slate-400 mb-1">最新總累計損益</label>
-                    <input type="number" id="editStratPnl" class="w-full bg-dark-input border border-dark-border rounded-lg p-2.5 font-mono text-slate-100 focus:outline-none focus:border-amber-500">
-                </div>
-                <div>
-                    <label class="block text-slate-400 mb-1">最新總累計次數</label>
-                    <input type="number" id="editStratCount" class="w-full bg-dark-input border border-dark-border rounded-lg p-2.5 font-mono text-slate-100 focus:outline-none focus:border-amber-500">
-                </div>
+            <div class="form-group">
+              <label>初始累計次數</label>
+              <input type="number" id="stratInitCount" value="0" placeholder="0">
             </div>
-
-            <div class="flex justify-end space-x-2 pt-2">
-                <button type="button" onclick="closeEditModal()" class="px-4 py-2 rounded-lg bg-dark-hover text-slate-300 text-xs">取消</button>
-                <button type="button" onclick="saveDirectEdit()" class="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs">儲存修改</button>
-            </div>
-        </div>
+          </div>
+          <button type="submit" class="primary" style="width: 100%; margin-top: 10px;">建立策略卡片</button>
+        </form>
+      </div>
     </div>
 
-    <!-- Import JSON Modal -->
-    <div id="modalOverlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-dark-card border border-dark-border rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-            <div class="flex justify-between items-center border-b border-dark-border pb-3">
-                <h3 class="font-bold text-slate-100 flex items-center space-x-2 text-sm">
-                    <i class="fa-solid fa-upload text-emerald-400"></i>
-                    <span>匯入 JSON 備份資料</span>
-                </h3>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark text-base"></i></button>
-            </div>
-
-            <div class="space-y-3 text-xs">
-                <input type="file" id="jsonFileInput" accept=".json" onchange="handleFileSelect(event)" class="block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-dark-hover file:text-slate-200 hover:file:bg-slate-700">
-                <textarea id="importJsonText" rows="6" placeholder="或在此處直接貼上 JSON 備份內容..." class="w-full bg-dark-input border border-dark-border rounded-lg p-2.5 text-xs font-mono text-slate-200 focus:outline-none focus:border-emerald-500"></textarea>
-            </div>
-
-            <div class="flex justify-end space-x-2 pt-2">
-                <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-lg bg-dark-hover text-slate-300 text-xs">取消</button>
-                <button type="button" onclick="executeImport()" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs">確認匯入</button>
-            </div>
-        </div>
+    <!-- 特殊策略卡片列表（可展開/關閉） -->
+    <div style="margin-bottom: 24px;">
+      <div class="collapsible-header" onclick="toggleStrategySection()">
+        <h2 style="font-size: 1.15rem; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+          🎯 特殊策略卡片區塊
+        </h2>
+        <button type="button" id="stratToggleBtn" style="padding: 4px 10px; font-size: 0.8rem;">▼ 展開 / 收合</button>
+      </div>
+      
+      <div class="strategy-grid" id="strategyGrid"></div>
     </div>
 
-    <!-- JavaScript Application Logic -->
-    <script>
-        let appState = {
-            positions: [],
-            strategies: []
+    <!-- 進場部位記錄表格（預設僅顯示前 3 筆） -->
+    <div class="section-card">
+      <div class="section-title">
+        <span>📋 進場部位記錄 (預設顯示最新 3 筆)</span>
+        <button onclick="clearPositions()" class="danger" style="padding: 4px 10px; font-size: 0.75rem;">清空所有部位</button>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>日期時間</th>
+              <th>商品名稱</th>
+              <th>方向</th>
+              <th>進場點位</th>
+              <th>數量</th>
+              <th>進場備註</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="positionTableBody"></tbody>
+        </table>
+      </div>
+      <button class="toggle-all-btn" id="togglePosBtn" onclick="toggleShowAllPositions()" style="display: none;"></button>
+    </div>
+  </div>
+
+  <script>
+    let positions = JSON.parse(localStorage.getItem('trade_positions')) || [
+      { id: 1, date: '2026-10-22 09:15', symbol: '小台', side: '做多', price: 40000, qty: 1, note: '進場第1口' },
+      { id: 2, date: '2026-10-22 10:30', symbol: '小台', side: '做多', price: 42000, qty: 1, note: '加碼第2口' }
+    ];
+
+    let strategies = JSON.parse(localStorage.getItem('trade_strategies')) || [
+      { id: 1, name: '特殊策略 黑後紅', pnl: -3000, count: 1 }
+    ];
+
+    let showAllPositions = false;
+    let isStrategyCollapsed = false;
+
+    function saveData() {
+      localStorage.setItem('trade_positions', JSON.stringify(positions));
+      localStorage.setItem('trade_strategies', JSON.stringify(strategies));
+      render();
+    }
+
+    function toggleStrategySection() {
+      isStrategyCollapsed = !isStrategyCollapsed;
+      const grid = document.getElementById('strategyGrid');
+      const btn = document.getElementById('stratToggleBtn');
+      if (isStrategyCollapsed) {
+        grid.classList.add('collapsed');
+        btn.textContent = '▶ 展開區塊';
+      } else {
+        grid.classList.remove('collapsed');
+        btn.textContent = '▼ 收合區塊';
+      }
+    }
+
+    function toggleShowAllPositions() {
+      showAllPositions = !showAllPositions;
+      render();
+    }
+
+    function addPosition(e) {
+      e.preventDefault();
+      const symbol = document.getElementById('symbol').value;
+      const side = document.getElementById('side').value;
+      const price = parseFloat(document.getElementById('entryPrice').value);
+      const qty = parseInt(document.getElementById('qty').value);
+      const note = document.getElementById('posNote').value;
+
+      const now = new Date();
+      const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+      positions.unshift({ id: Date.now(), date: dateStr, symbol, side, price, qty, note });
+      document.getElementById('positionForm').reset();
+      saveData();
+    }
+
+    function deletePosition(id) {
+      if (confirm('確定要刪除這筆部位記錄嗎？')) {
+        positions = positions.filter(p => p.id !== id);
+        saveData();
+      }
+    }
+
+    function clearPositions() {
+      if (confirm('確定要刪除「所有」部位記錄嗎？')) {
+        positions = [];
+        saveData();
+      }
+    }
+
+    function addStrategy(e) {
+      e.preventDefault();
+      const name = document.getElementById('stratName').value;
+      const pnl = parseFloat(document.getElementById('stratInitPnl').value) || 0;
+      const count = parseInt(document.getElementById('stratInitCount').value) || 0;
+
+      strategies.push({ id: Date.now(), name, pnl, count });
+      document.getElementById('strategyForm').reset();
+      saveData();
+    }
+
+    function updateStrategyData(id) {
+      const pnlInput = document.getElementById(`pnl-inp-${id}`);
+      const cntInput = document.getElementById(`cnt-inp-${id}`);
+      
+      const pnlVal = pnlInput.value.trim();
+      const cntVal = cntInput.value.trim();
+
+      const strat = strategies.find(s => s.id === id);
+      if (!strat) return;
+
+      if (pnlVal !== '') {
+        const addedPnl = parseFloat(pnlVal);
+        if (!isNaN(addedPnl)) {
+          strat.pnl += addedPnl;
+          if (cntVal === '') {
+            strat.count += 1;
+          }
+        }
+      }
+
+      if (cntVal !== '') {
+        const newCount = parseInt(cntVal);
+        if (!isNaN(newCount)) {
+          strat.count = newCount;
+        }
+      }
+
+      pnlInput.value = '';
+      cntInput.value = '';
+      saveData();
+    }
+
+    function editStrategyDirect(id) {
+      const strat = strategies.find(s => s.id === id);
+      if (!strat) return;
+
+      const newPnl = prompt(`請輸入 ${strat.name} 的「最新總累計損益」：`, strat.pnl);
+      if (newPnl === null) return;
+
+      const newCount = prompt(`請輸入 ${strat.name} 的「最新總累計次數」：`, strat.count);
+      if (newCount === null) return;
+
+      const p = parseFloat(newPnl);
+      const c = parseInt(newCount);
+
+      if (!isNaN(p)) strat.pnl = p;
+      if (!isNaN(c)) strat.count = c;
+
+      saveData();
+    }
+
+    function deleteStrategy(id) {
+      if (confirm('確定要刪除這張策略卡片嗎？')) {
+        strategies = strategies.filter(s => s.id !== id);
+        saveData();
+      }
+    }
+
+    function exportData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ positions, strategies }, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `trade_backup_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importData() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.onchange = e => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = event => {
+          try {
+            const data = JSON.parse(event.target.result);
+            if (data.positions && data.strategies) {
+              positions = data.positions;
+              strategies = data.strategies;
+              saveData();
+              alert('匯入成功！');
+            }
+          } catch (err) {
+            alert('JSON 檔案格式不符');
+          }
         };
+        reader.readAsText(file);
+      };
+      input.click();
+    }
 
-        window.onload = function() {
-            loadFromLocalStorage();
-            if (appState.strategies.length === 0 && appState.positions.length === 0) {
-                appState.strategies = [
-                    { id: 's_1', name: '特殊策略 黑後紅', pnl: -3000, count: 1 }
-                ];
-                appState.positions = [
-                    { id: 'p_1', date: getFormattedDate(), symbol: '小台', side: '做多', price: 40000, qty: 1, note: '黑後紅策略進場第1口' },
-                    { id: 'p_2', date: getFormattedDate(), symbol: '小台', side: '做多', price: 42000, qty: 1, note: '加碼第2口' }
-                ];
-                saveToLocalStorage();
-            }
-            renderAll();
-        };
+    function render() {
+      // 1. 渲染策略卡片
+      const grid = document.getElementById('strategyGrid');
+      grid.innerHTML = '';
 
-        function loadFromLocalStorage() {
-            const saved = localStorage.getItem('tj_app_data_v3');
-            if (saved) {
-                try {
-                    appState = JSON.parse(saved);
-                } catch(e) {
-                    console.error('Data load error', e);
-                }
-            }
+      if (strategies.length === 0) {
+        grid.innerHTML = `<div class="empty-tip" style="grid-column: 1/-1;">尚無策略卡片</div>`;
+      } else {
+        strategies.forEach(s => {
+          const card = document.createElement('div');
+          card.className = 'strat-card';
+          
+          const pnlClass = s.pnl > 0 ? 'val-profit' : (s.pnl < 0 ? 'val-loss' : '');
+          const pnlSign = s.pnl > 0 ? '+' : '';
+
+          card.innerHTML = `
+            <div>
+              <div class="strat-header">
+                <span class="strat-name">${s.name}</span>
+                <div>
+                  <button class="btn-icon" onclick="editStrategyDirect(${s.id})" title="直接編輯數值">✏️</button>
+                  <button class="btn-icon" onclick="deleteStrategy(${s.id})" title="刪除策略">🗑️</button>
+                </div>
+              </div>
+              <div class="strat-stats">
+                <div class="stat-box">
+                  <div class="stat-label">累計損益</div>
+                  <div class="stat-val ${pnlClass}">${pnlSign}${s.pnl.toLocaleString()}</div>
+                </div>
+                <div class="stat-box">
+                  <div class="stat-label">累計次數</div>
+                  <div class="stat-val">${s.count} 次</div>
+                </div>
+              </div>
+            </div>
+            <div class="strat-inputs">
+              <div class="strat-input-row">
+                <input type="text" id="pnl-inp-${s.id}" placeholder="損益 (+3000 / -2000)" onkeydown="if(event.key==='Enter') updateStrategyData(${s.id})">
+                <input type="number" id="cnt-inp-${s.id}" placeholder="重設次數" style="width: 85px;" onkeydown="if(event.key==='Enter') updateStrategyData(${s.id})">
+              </div>
+              <button class="primary" style="width: 100%; justify-content: center;" onclick="updateStrategyData(${s.id})">更新累計資料</button>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+      }
+
+      // 2. 渲染部位表格（控制顯示筆數）
+      const tbody = document.getElementById('positionTableBody');
+      const togglePosBtn = document.getElementById('togglePosBtn');
+      tbody.innerHTML = '';
+
+      if (positions.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="empty-tip">目前沒有任何部位點位記錄。</td></tr>`;
+        togglePosBtn.style.display = 'none';
+      } else {
+        const displayPositions = showAllPositions ? positions : positions.slice(0, 3);
+
+        displayPositions.forEach(p => {
+          const tr = document.createElement('tr');
+          const sideBadge = p.side === '做多' 
+            ? `<span class="badge badge-long">做多</span>` 
+            : `<span class="badge badge-short">做空</span>`;
+
+          tr.innerHTML = `
+            <td style="color: var(--text-muted); font-size: 0.8rem;">${p.date}</td>
+            <td style="font-weight: 600;">${p.symbol}</td>
+            <td>${sideBadge}</td>
+            <td style="font-size: 0.95rem; font-weight: 700; color: var(--accent-blue);">${p.price.toLocaleString()}</td>
+            <td>${p.qty}</td>
+            <td style="color: var(--text-muted);">${p.note || '-'}</td>
+            <td><button class="btn-icon" onclick="deletePosition(${p.id})">🗑️</button></td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        if (positions.length > 3) {
+          togglePosBtn.style.display = 'block';
+          togglePosBtn.textContent = showAllPositions 
+            ? '▲ 收合僅顯示最新 3 筆記錄' 
+            : `▼ 展開顯示全部部位 (共 ${positions.length} 筆)`;
+        } else {
+          togglePosBtn.style.display = 'none';
         }
+      }
+    }
 
-        function saveToLocalStorage() {
-            localStorage.setItem('tj_app_data_v3', JSON.stringify(appState));
-        }
-
-        function renderAll() {
-            renderPositions();
-            renderStrategies();
-        }
-
-        /* --- Position Handling --- */
-        function handleAddPosition(e) {
-            e.preventDefault();
-            const symbol = document.getElementById('posSymbol').value.trim();
-            const side = document.getElementById('posSide').value;
-            const price = parseFloat(document.getElementById('posPrice').value);
-            const qty = parseInt(document.getElementById('posQty').value);
-            const note = document.getElementById('posNote').value.trim();
-
-            appState.positions.unshift({
-                id: 'p_' + Date.now(),
-                date: getFormattedDate(),
-                symbol,
-                side,
-                price,
-                qty,
-                note
-            });
-
-            saveToLocalStorage();
-            renderPositions();
-
-            document.getElementById('posSymbol').value = '';
-            document.getElementById('posPrice').value = '';
-            document.getElementById('posNote').value = '';
-        }
-
-        function deletePosition(id) {
-            if (confirm('確定要刪除這筆部位記錄嗎？')) {
-                appState.positions = appState.positions.filter(p => p.id !== id);
-                saveToLocalStorage();
-                renderPositions();
-            }
-        }
-
-        function clearAllPositions() {
-            if (appState.positions.length === 0) return;
-            if (confirm('確定要刪除所有已記錄的部位點位嗎？此動作無法復原！')) {
-                appState.positions = [];
-                saveToLocalStorage();
-                renderPositions();
-            }
-        }
-
-        function renderPositions() {
-            const tbody = document.getElementById('positionTableBody');
-            document.getElementById('posCountBadge').innerText = appState.positions.length;
-
-            if (appState.positions.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="7" class="text-center py-8 text-slate-500 font-sans">
-                            <i class="fa-solid fa-box-open text-2xl mb-1 opacity-40 block"></i>
-                            目前沒有任何進場部位紀錄
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
-            tbody.innerHTML = appState.positions.map(p => {
-                const isLong = p.side === '做多';
-                return `
-                    <tr class="hover:bg-dark-hover/50 transition">
-                        <td class="px-4 py-3 text-slate-400">${p.date}</td>
-                        <td class="px-4 py-3 font-bold text-slate-100 font-sans">${escapeHtml(p.symbol)}</td>
-                        <td class="px-4 py-3">
-                            <span class="px-2 py-0.5 rounded text-[10px] font-bold font-sans ${isLong ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}">
-                                ${p.side}
-                            </span>
-                        </td>
-                        <td class="px-4 py-3 font-bold text-amber-400 text-sm">${p.price.toLocaleString()}</td>
-                        <td class="px-4 py-3">${p.qty}</td>
-                        <td class="px-4 py-3 text-slate-400 font-sans">${escapeHtml(p.note || '-')}</td>
-                        <td class="px-4 py-3 text-right font-sans">
-                            <button onclick="deletePosition('${p.id}')" title="刪除部位" class="text-slate-500 hover:text-rose-400 transition p-1">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        /* --- Strategy Card Handling --- */
-        function handleAddStrategy(e) {
-            e.preventDefault();
-            const name = document.getElementById('stratName').value.trim();
-            const pnl = parseFloat(document.getElementById('stratInitPnl').value) || 0;
-            const count = parseInt(document.getElementById('stratInitCount').value) || 0;
-
-            appState.strategies.push({
-                id: 's_' + Date.now(),
-                name,
-                pnl,
-                count
-            });
-
-            saveToLocalStorage();
-            renderStrategies();
-            document.getElementById('addStratForm').reset();
-        }
-
-        function updateStrategyValue(id) {
-            const pnlInput = document.getElementById(`pnl_${id}`);
-            const countInput = document.getElementById(`cnt_${id}`);
-            
-            const pnlStr = pnlInput.value.trim();
-            const countStr = countInput.value.trim();
-
-            const strat = appState.strategies.find(s => s.id === id);
-            if (!strat) return;
-
-            let updated = false;
-
-            if (pnlStr !== '') {
-                const num = parseFloat(pnlStr);
-                if (!isNaN(num)) {
-                    strat.pnl += num;
-                    if (countStr === '') {
-                        strat.count += 1;
-                    }
-                    updated = true;
-                }
-            }
-
-            if (countStr !== '') {
-                const newCount = parseInt(countStr);
-                if (!isNaN(newCount)) {
-                    strat.count = newCount;
-                    updated = true;
-                }
-            }
-
-            if (updated) {
-                pnlInput.value = '';
-                countInput.value = '';
-                saveToLocalStorage();
-                renderStrategies();
-            }
-        }
-
-        function openEditModal(id) {
-            const strat = appState.strategies.find(s => s.id === id);
-            if (!strat) return;
-
-            document.getElementById('editStratId').value = strat.id;
-            document.getElementById('editStratPnl').value = strat.pnl;
-            document.getElementById('editStratCount').value = strat.count;
-            document.getElementById('editModalOverlay').classList.remove('hidden');
-        }
-
-        function closeEditModal() {
-            document.getElementById('editModalOverlay').classList.add('hidden');
-        }
-
-        function saveDirectEdit() {
-            const id = document.getElementById('editStratId').value;
-            const pnl = parseFloat(document.getElementById('editStratPnl').value);
-            const count = parseInt(document.getElementById('editStratCount').value);
-
-            const strat = appState.strategies.find(s => s.id === id);
-            if (strat) {
-                if (!isNaN(pnl)) strat.pnl = pnl;
-                if (!isNaN(count)) strat.count = count;
-                saveToLocalStorage();
-                renderStrategies();
-                closeEditModal();
-            }
-        }
-
-        function deleteStrategy(id) {
-            if (confirm('確定要刪除這張策略卡片嗎？')) {
-                appState.strategies = appState.strategies.filter(s => s.id !== id);
-                saveToLocalStorage();
-                renderStrategies();
-            }
-        }
-
-        function renderStrategies() {
-            const grid = document.getElementById('strategyGrid');
-
-            if (appState.strategies.length === 0) {
-                grid.innerHTML = `
-                    <div class="col-span-full bg-dark-card border border-dark-border rounded-xl p-8 text-center text-slate-500 text-xs">
-                        尚無策略卡片，請於上方建立新卡片。
-                    </div>
-                `;
-                return;
-            }
-
-            grid.innerHTML = appState.strategies.map(s => {
-                const isPositive = s.pnl > 0;
-                const isNegative = s.pnl < 0;
-                const pnlColorClass = isPositive ? 'text-emerald-400' : (isNegative ? 'text-rose-400' : 'text-slate-300');
-                const pnlPrefix = isPositive ? '+' : '';
-
-                return `
-                    <div class="bg-dark-card border border-dark-border rounded-xl p-4 space-y-4 shadow-md flex flex-col justify-between hover:border-slate-700 transition">
-                        <div>
-                            <!-- Header -->
-                            <div class="flex justify-between items-center border-b border-dark-border pb-2.5">
-                                <h3 class="font-bold text-amber-400 text-sm flex items-center space-x-2">
-                                    <i class="fa-solid fa-bookmark text-xs"></i>
-                                    <span>${escapeHtml(s.name)}</span>
-                                </h3>
-                                <div class="flex items-center space-x-2">
-                                    <button onclick="openEditModal('${s.id}')" title="編輯數值" class="text-slate-500 hover:text-amber-400 transition p-1">
-                                        <i class="fa-solid fa-pen-to-square text-sm"></i>
-                                    </button>
-                                    <button onclick="deleteStrategy('${s.id}')" title="刪除卡片" class="text-slate-500 hover:text-rose-400 transition p-1">
-                                        <i class="fa-solid fa-trash-can text-sm"></i>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Stat Box -->
-                            <div class="grid grid-cols-2 gap-2 bg-dark-input border border-dark-border rounded-lg p-3 my-3 text-center">
-                                <div>
-                                    <div class="text-[10px] text-slate-400">累計損益</div>
-                                    <div class="text-base font-bold font-mono ${pnlColorClass} mt-0.5">
-                                        ${pnlPrefix}${s.pnl.toLocaleString()}
-                                    </div>
-                                </div>
-                                <div>
-                                    <div class="text-[10px] text-slate-400">累計次數</div>
-                                    <div class="text-base font-bold font-mono text-slate-100 mt-0.5">
-                                        ${s.count} 次
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Update Inputs -->
-                        <div class="space-y-2 text-xs">
-                            <div class="grid grid-cols-2 gap-2">
-                                <input 
-                                    type="text" 
-                                    id="pnl_${s.id}" 
-                                    placeholder="+3000 / -2000" 
-                                    onkeydown="if(event.key==='Enter') updateStrategyValue('${s.id}')"
-                                    class="bg-dark-input border border-dark-border rounded-lg px-2.5 py-1.5 font-mono text-slate-100 focus:outline-none focus:border-amber-500"
-                                >
-                                <input 
-                                    type="number" 
-                                    id="cnt_${s.id}" 
-                                    placeholder="修改累計次數" 
-                                    onkeydown="if(event.key==='Enter') updateStrategyValue('${s.id}')"
-                                    class="bg-dark-input border border-dark-border rounded-lg px-2.5 py-1.5 font-mono text-slate-100 focus:outline-none focus:border-amber-500"
-                                >
-                            </div>
-                            <button onclick="updateStrategyValue('${s.id}')" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-1.5 rounded-lg transition text-xs">
-                                更新數據
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        /* --- Backup and File Import/Export --- */
-        function exportData() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
-            const anchor = document.createElement('a');
-            anchor.setAttribute("href", dataStr);
-            anchor.setAttribute("download", `Trading_Journal_${new Date().toISOString().slice(0, 10)}.json`);
-            document.body.appendChild(anchor);
-            anchor.click();
-            anchor.remove();
-        }
-
-        function openImportModal() {
-            document.getElementById('importJsonText').value = '';
-            document.getElementById('modalOverlay').classList.remove('hidden');
-        }
-
-        function closeModal() {
-            document.getElementById('modalOverlay').classList.add('hidden');
-        }
-
-        function handleFileSelect(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                document.getElementById('importJsonText').value = evt.target.result;
-            };
-            reader.readAsText(file);
-        }
-
-        function executeImport() {
-            const text = document.getElementById('importJsonText').value;
-            try {
-                const parsed = JSON.parse(text);
-                if (parsed) {
-                    appState = {
-                        positions: parsed.positions || [],
-                        strategies: parsed.strategies || []
-                    };
-                    saveToLocalStorage();
-                    renderAll();
-                    closeModal();
-                    alert('資料成功匯入！');
-                }
-            } catch (err) {
-                alert('JSON 解析失敗，請確定格式正確。');
-            }
-        }
-
-        function getFormattedDate() {
-            const now = new Date();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            return `${month}/${day} ${hours}:${minutes}`;
-        }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/[&<>"']/g, function(m) {
-                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
-            });
-        }
-    </script>
+    render();
+  </script>
 </body>
 </html>
